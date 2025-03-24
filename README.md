@@ -1,3 +1,5 @@
+About
+-----------------------------
 Chrome extension to help bookmark links.
 
 Click the extension icon to use.
@@ -11,6 +13,30 @@ Features:
 - Generate a youtube playlist from a folder
 - Dark/light mode (uses system setting)
 
+Compiling
+-----------------------------
+1. Install dependencies (if you haven't already):
+```
+npm install
+```
+
+2. Build the extension:
+```
+npm run build
+```
+This will create a dist directory with your built extension. In developer mode, you can load unpacked extension into chrome/edge (or any chrome based forks)
+
+4. To package as a zip (windows)
+```
+cd dist
+powershell Compress-Archive -Path * -DestinationPath ../links2bookmark.zip
+```
+
+4. Alternatively, using WXT CLI
+```
+npx wxt build --zip
+```
+
 Pics:
 -----------------------------
 ![Menu showing main functions](assets/popup.png)
@@ -22,7 +48,6 @@ Pics:
 -----------------------------
 
 ![url import view](assets/url-import.png)
-
 
 Potential New Features: (soon):
 -----------------------------
