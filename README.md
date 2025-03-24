@@ -14,7 +14,13 @@ Features:
 Pics:
 -----------------------------
 ![Menu showing main functions](assets/popup.png)
+
+-----------------------------
+
 ![Folder picker view](assets/folder-picker.png)
+
+-----------------------------
+
 ![url import view](assets/url-import.png)
 
 
