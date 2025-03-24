@@ -1,5 +1,5 @@
 # Define the path to your package.json file
-$packageJsonPath = "h:\Github\links2bookmark\package.json"
+$packageJsonPath = "package.json"
 
 # List of packages to update
 $packages = @("vite", "typescript", "@swc/core", "@swc/cli")
@@ -22,10 +22,16 @@ foreach ($pkg in $packages) {
     }
 }
 
-# Convert the updated object back to JSON. Set a sufficient depth for nested objects.
-$updatedJson = $packageJson | ConvertTo-Json -Depth 10
+# Create a temporary file
+$tempFile = [System.IO.Path]::GetTempFileName()
 
-# Write the updated JSON back to package.json.
-Set-Content -Path $packageJsonPath -Value $updatedJson
+# Save the modified JSON to the temporary file
+$packageJson | ConvertTo-Json -Depth 10 | Set-Content -Path $tempFile
+
+# Use jq to format with 2-space indentation and write back to package.json
+jq --indent 2 . $tempFile | Set-Content -Path $packageJsonPath
+
+# Clean up the temporary file
+Remove-Item $tempFile
 
 Write-Output "package.json has been updated."
