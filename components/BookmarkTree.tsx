@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Button from './Button';
 
 interface BookmarkNode {
   id: string;
@@ -122,7 +123,7 @@ export default function BookmarkTree({
     }
   };
 
-  const renderBookmarkItem = (node: BookmarkNode) => {
+  const renderBookmarkItem = (node: BookmarkNode, mode: 'browse' | 'select') => {
     const isFolder = !node.url;
     const isExpanded = expandedFolders.has(node.id);
     const isSelected = selectedFolder === node.id;
@@ -161,13 +162,15 @@ export default function BookmarkTree({
                 <span className="ml-auto text-xs text-blue-600">✓</span>
                 )}
             </div>
-            <button 
-                className="cursor-pointer bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 hover:dark:bg-gray-800 text-xs text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 px-1 py-0.5 border border-slate-200 dark:border-slate-700 active:bg-gray-300 dark:active:bg-gray-700 rounded-r"
+            <Button 
+                variant="secondary"
+                size="sm"
                 onClick={(e) => startCreateFolder(node.id, e)}
                 title="Create new folder"
+                className="rounded-l-none rounded-r"
             >
                 📁+
-            </button>
+            </Button>
             </div>
             
             {isExpanded && (
@@ -184,23 +187,27 @@ export default function BookmarkTree({
                       onKeyDown={handleInputKeyDown}
                       autoFocus
                     />
-                    <button
-                      className="ml-1 text-xs text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 px-1 py-0.5"
-                      onClick={confirmCreateFolder}
-                      title="Confirm"
-                    >
-                      ✓
-                    </button>
-                    <button
-                      className="ml-1 text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 px-1 py-0.5"
-                      onClick={cancelCreateFolder}
-                      title="Cancel"
-                    >
-                      ✕
-                    </button>
+                    <Button
+                    size="sm"
+                    variant="success"
+                    onClick={confirmCreateFolder}
+                    title="Confirm"
+                    className="ml-1 m-0 p-0"
+                  >
+                    ✓
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={cancelCreateFolder}
+                    title="Cancel"
+                    className="ml-1 m-0 p-0"
+                  >
+                    ✕
+                  </Button>
                   </li>
                 )}
-                {node.children?.map(child => renderBookmarkItem(child)).filter(Boolean)}
+                {node.children?.map(child => renderBookmarkItem(child, mode)).filter(Boolean)}
               </ul>
             )}
           </>
@@ -224,10 +231,11 @@ export default function BookmarkTree({
   if (!visible) return null;
 
   return (
-    <div className="bookmark-tree bg-white dark:bg-gray-900 p-2 rounded-lg shadow-md w-full">
+    <div className="bookmark-tree bg-gray-100 dark:bg-gray-900 p-2 rounded-lg shadow-md w-full">
       <h2 className="text-sm font-bold mb-2 text-left text-gray-800 dark:text-gray-100">
         {mode === 'select' ? 'Select Destination Folder' : 'Bookmarks'}
       </h2>
+      <p className='text-xs'>Double click to open folder</p>
       
       {bookmarks === null ? (
         <div className="error-message bg-red-50 dark:bg-red-900/20 p-2 rounded-lg border border-red-200 dark:border-red-800 text-left">
@@ -250,7 +258,7 @@ export default function BookmarkTree({
         <>
           <div className={`max-h-${mode === 'select' ? '60' : '96'} overflow-y-auto pr-1 custom-scrollbar`}>
             <ul className="root-bookmarks text-left space-y-0.5">
-              {bookmarks.map(node => node.children?.map(renderBookmarkItem).filter(Boolean))}
+              {bookmarks.map(node => node.children?.map(f => renderBookmarkItem(f, mode)).filter(Boolean))}
             </ul>
           </div>
           
