@@ -14,13 +14,15 @@ interface BookmarkTreeProps {
   onSelectFolder?: (folderId: string) => void;
   onCancel?: () => void;
   visible?: boolean;
+  source?: boolean;
 }
 
 export default function BookmarkTree({
   mode = 'browse',
   onSelectFolder,
   onCancel,
-  visible = true
+  visible = true,
+  source = false
 }: BookmarkTreeProps) {
   const [bookmarks, setBookmarks] = useState<BookmarkNode[] | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
@@ -233,7 +235,7 @@ export default function BookmarkTree({
   return (
     <div className="bookmark-tree bg-gray-100 dark:bg-gray-900 p-2 rounded-lg shadow-md w-full">
       <h2 className="text-sm font-bold mb-2 text-left text-gray-800 dark:text-gray-100">
-        {mode === 'select' ? 'Select Destination Folder' : 'Bookmarks'}
+        {mode === 'select' ? "Select " + (source ? "Source" : "Destination") + " Folder" : 'Bookmarks'}
       </h2>
       <p className='text-xs'>Double click to open folder</p>
       
@@ -279,7 +281,7 @@ export default function BookmarkTree({
                     : 'bg-blue-300 cursor-not-allowed'
                 }`}
               >
-                Add Bookmarks
+                {source ? "Copy Bookmarks" : "Add Bookmarks"}
               </button>
             </div>
           )}

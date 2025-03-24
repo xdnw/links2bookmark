@@ -1,7 +1,0 @@
-TODO: Background task to resolve bookmark icons/titles
-
-Convert urls to youtube playlist (max 50)
--> YouTube Playlist From Links
-https://apps.dominiczelek.com/youtube-playlist-from-links/
-
-If on page, show next or previous (if in bookmarks) as well as random in favorites

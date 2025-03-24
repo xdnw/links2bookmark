@@ -4,7 +4,7 @@ import BookmarkTree from '../../components/BookmarkTree';
 import StatusMessage from '../../components/StatusMessage';
 import SelectedTabs from '../../components/SelectedTabs';
 import UrlInput from '../../components/UrlInput';
-import ExportDropdown from '../../components/ExportDropdown';
+import ExportDropdown, { ExportFormat } from '../../components/ExportDropdown';
 import BookmarkListAction from '../../components/BookmarkListAction';
 import { useSelectedTabs } from '../../hooks/useSelectedTabs';
 import { useUrlParser } from '../../hooks/useUrlParser';
@@ -62,7 +62,7 @@ function App() {
     }
   }, [parsedUrls.length, clearExportFormat]);
 
-  const handleExportFormatSelect = useCallback((format: 'urls' | 'tsv' | 'csv' | 'markdown') => {
+  const handleExportFormatSelect = useCallback((format: ExportFormat) => {
     setExportFormat(format);
     setShowFolderSelector(true);
   }, [setExportFormat]);
@@ -100,6 +100,7 @@ function App() {
         mode="select"
         onSelectFolder={handleConfirmFolderSelect}
         onCancel={handleFolderSelectCancel}
+        source={!!exportFormat}
       />
       </>
     );

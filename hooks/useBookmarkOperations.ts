@@ -1,12 +1,14 @@
+import { ExportFormat } from '@/components/ExportDropdown';
 import { useState, useCallback } from 'react';
+import { toYoutubePlaylist } from './youtube';
 
 export const useBookmarkOperations = () => {
   const [bookmarkSuccess, setBookmarkSuccess] = useState<string | null>(null);
-  const [exportFormat, setExportFormat] = useState<'urls' | 'tsv' | 'csv' | 'markdown' | null>(null);
+  const [exportFormat, setExportFormat] = useState<ExportFormat | null>(null);
 
   const handleFolderSelect = useCallback(async (
     folderId: string, 
-    exportFormat: 'urls' | 'tsv' | 'csv' | 'markdown' | null,
+    exportFormat: ExportFormat | null,
     parsedUrls: {title: string, url: string}[],
     selectedTabs: chrome.tabs.Tab[],
     onSuccess?: () => void
@@ -21,6 +23,7 @@ export const useBookmarkOperations = () => {
           return false;
         }
         
+        let message = (items.length === 1 ? "Link" : "Links") + " copied to clipboard!";
         let textToCopy = '';
         switch (exportFormat) {
           case 'urls':
@@ -35,10 +38,21 @@ export const useBookmarkOperations = () => {
           case 'markdown':
             textToCopy = items.map(item => `[${item.title}](${item.url})`).join('\n');
             break;
+          case 'youtube': {
+            const result = toYoutubePlaylist(items);
+            if (result.success > 0) {
+              textToCopy = result.result.join('\n');
+              message = result.message;
+            } else {
+              setBookmarkSuccess(result.message);
+              return false;
+            }
+            break;
+          }
         }
         
         await navigator.clipboard.writeText(textToCopy);
-        setBookmarkSuccess("Links copied to clipboard!");
+        setBookmarkSuccess(message);
       } else {
         if (parsedUrls.length > 0) {
           // Add each parsed URL as a bookmark

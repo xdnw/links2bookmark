@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import Button from './Button';
 
-type ExportFormat = 'urls' | 'tsv' | 'csv' | 'markdown';
+export type ExportFormat = 'urls' | 'tsv' | 'csv' | 'markdown' | 'youtube';
 
 type ExportDropdownProps = {
   onSelectFormat: (format: ExportFormat) => void;
@@ -43,7 +43,7 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({ onSelectFormat }) => {
         endIcon={arrowIcon}
         className={`${showDropdown ? 'rounded-0 rounded-t' : 'rounded'} mb-2`}
       >
-        Copy bookmarks to clipboard
+        Copy bookmarked folder to clipboard
       </Button>
     </div>
       {showDropdown && (
@@ -87,6 +87,14 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({ onSelectFormat }) => {
                 className="px-4 py-2 text-left justify-start"
             >
                 Copy as Markdown
+            </Button>
+            <Button
+                onClick={() => handleSelectFormat('youtube')}
+                variant="ghost"
+                fullWidth
+                className="px-4 py-2 text-left justify-start"
+            >
+                Generate a YouTube playlist URL
             </Button>
             </li>
           </ul>

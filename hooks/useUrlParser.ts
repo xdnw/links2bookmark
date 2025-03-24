@@ -18,7 +18,12 @@ export const useUrlParser = () => {
           url = markdownMatch[2].trim();
         } else {
           // Check if it's URL | Title format
-          const parts = line.split('|');
+          let parts;
+          if (line.includes('\t')) {
+            parts = line.split('\t');
+          } else {
+            parts = line.split('|');
+          }
           url = parts[0].trim();
           title = parts.length > 1 ? parts[1].trim() : '';
         }
