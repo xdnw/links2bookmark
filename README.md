@@ -3,6 +3,7 @@ Chrome extension to help bookmark links.
 Click the extension icon to use.
 
 Features:
+-----------------------------
 - Import a list of links (bar or tab separated or markdown or plain) (folder selection & creation)
 - Add the selected tabs to bookmarks
 - Selection tool to bookmark links on a page (with confirmation and folder selection)
@@ -10,15 +11,22 @@ Features:
 - Generate a youtube playlist from a folder
 - Dark/light mode (uses system setting)
 
-Potential New Features:
-(soon):
+Pics:
+-----------------------------
+![Menu showing main functions](assets/popup.png)
+![Folder picker view](assets/folder-picker.png)
+![url import view](assets/url-import.png)
+
+
+Potential New Features: (soon):
+-----------------------------
 1.  **Duplicate detection** - When adding new bookmarks, detect and warn about potential duplicates in the selected folder
 2.  **Recently added filter** - Quick filter to show only recently added bookmarks
 3.  **JSON syntax for bookmarks** - probably just use the html syntax but with json instead of xml
 4. Custom bookmarks page: Modify the bookmarks page to allow directly right click copying links
--------------------------------
 
 (later):
+-----------------------------
 1.  **Pagination (Next/Previous)** - Show next/previous button on pages that are bookmarked to go to the next page in the same bookmark folder (with shortcut). implementation should check history to determine what folder is applicable
 2.  **Statistics view** - Show simple statistics about your bookmarks (total count, by domain, etc.)
 3.  **Keyboard shortcuts** - for some basic actions
