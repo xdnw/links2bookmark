@@ -2,27 +2,47 @@ import { ExportFormat } from '@/components/ExportDropdown';
 import { useState, useCallback } from 'react';
 import { toYoutubePlaylist } from './youtube';
 
+// Helper function to recursively get all bookmarks
+const getAllBookmarks = async (folderId: string): Promise<chrome.bookmarks.BookmarkTreeNode[]> => {
+  const children = await browser.bookmarks.getChildren(folderId);
+  if (!children) return [];
+  let allBookmarks: chrome.bookmarks.BookmarkTreeNode[] = [];
+
+  for (const child of children) {
+    if (child.url) {
+      // This is a bookmark, add it to the list
+      allBookmarks.push(child);
+    } else {
+      // This is a folder, recursively get its bookmarks
+      const nestedBookmarks = await getAllBookmarks(child.id);
+      allBookmarks = allBookmarks.concat(nestedBookmarks);
+    }
+  }
+
+  return allBookmarks;
+};
+
 export const useBookmarkOperations = () => {
   const [bookmarkSuccess, setBookmarkSuccess] = useState<string | null>(null);
   const [exportFormat, setExportFormat] = useState<ExportFormat | null>(null);
 
   const handleFolderSelect = useCallback(async (
-    folderId: string, 
+    folderId: string,
     exportFormat: ExportFormat | null,
-    parsedUrls: {title: string, url: string}[],
+    parsedUrls: { title: string, url: string }[],
     selectedTabs: chrome.tabs.Tab[],
     onSuccess?: () => void
   ) => {
     try {
       if (exportFormat) {
-        const items = await chrome.bookmarks.getChildren(folderId);
-        
+        const items = await getAllBookmarks(folderId);
+
         if (items.length === 0) {
           setBookmarkSuccess("Error: No links found in folder");
           setTimeout(() => setBookmarkSuccess(null), 3000);
           return false;
         }
-        
+
         let message = (items.length === 1 ? "Link" : "Links") + " copied to clipboard!";
         let textToCopy = '';
         switch (exportFormat) {
@@ -50,7 +70,7 @@ export const useBookmarkOperations = () => {
             break;
           }
         }
-        
+
         await navigator.clipboard.writeText(textToCopy);
         setBookmarkSuccess(message);
       } else {
@@ -75,11 +95,11 @@ export const useBookmarkOperations = () => {
             }
           }
         }
-        
+
         if (onSuccess) {
           onSuccess();
         }
-        
+
         setBookmarkSuccess("Tabs successfully bookmarked!");
       }
       setTimeout(() => setBookmarkSuccess(null), 3000);

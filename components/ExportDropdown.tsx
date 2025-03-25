@@ -41,20 +41,21 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({ onSelectFormat }) => {
         fullWidth
         startIcon={copyIcon}
         endIcon={arrowIcon}
-        className={`${showDropdown ? 'rounded-0 rounded-t' : 'rounded'} mb-2`}
+        className=""
       >
         Copy bookmarked folder to clipboard
       </Button>
     </div>
       {showDropdown && (
-        <div className="w-full max-w-full bg-gray-50 dark:bg-black/25 border-2 border-gray-200 dark:border-gray-600 rounded-lg inset-shadow-sm">
-          <ul className="py-1">
+        <div className="w-full max-w-full bg-gray-50 dark:bg-black/25">
+          <ul>
           <li>
             <Button
                 onClick={() => handleSelectFormat('urls')}
-                variant="ghost"
+                variant="secondary"
                 fullWidth
-                className="px-4 py-2 text-left justify-start"
+                rounded={false}
+                className="px-4 py-2 text-left justify-start border-y-0 rounded-t-sm"
             >
                 Copy URLs only
             </Button>
@@ -62,9 +63,10 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({ onSelectFormat }) => {
             <li>
             <Button
                 onClick={() => handleSelectFormat('tsv')}
-                variant="ghost"
+                variant="secondary"
                 fullWidth
-                className="px-4 py-2 text-left justify-start"
+                rounded={false}
+                className="px-4 py-2 text-left justify-start border-y-0"
             >
                 Copy as TSV
             </Button>
@@ -72,9 +74,10 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({ onSelectFormat }) => {
             <li>
             <Button
                 onClick={() => handleSelectFormat('csv')}
-                variant="ghost"
+                variant="secondary"
                 fullWidth
-                className="px-4 py-2 text-left justify-start"
+                rounded={false}
+                className="px-4 py-2 text-left justify-start border-y-0"
             >
                 Copy as CSV
             </Button>
@@ -82,17 +85,19 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({ onSelectFormat }) => {
             <li>
             <Button
                 onClick={() => handleSelectFormat('markdown')}
-                variant="ghost"
+                variant="secondary"
                 fullWidth
-                className="px-4 py-2 text-left justify-start"
+                rounded={false}
+                className="px-4 py-2 text-left justify-start border-y-0"
             >
                 Copy as Markdown
             </Button>
             <Button
                 onClick={() => handleSelectFormat('youtube')}
-                variant="ghost"
+                variant="secondary"
                 fullWidth
-                className="px-4 py-2 text-left justify-start"
+                rounded={false}
+                className="px-4 py-2 text-left justify-start border-t-0 rounded-b-sm"
             >
                 Generate a YouTube playlist URL
             </Button>

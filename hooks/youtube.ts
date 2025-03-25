@@ -3,36 +3,38 @@ export function toYoutubePlaylist(items: chrome.bookmarks.BookmarkTreeNode[]): {
     success: number,
     error: number,
     message: string
- } {
+} {
     // Track statistics
     let filteredCount = 0;
     let successCount = 0;
     let errorCount = 0;
-    
+
     // Filter only links on youtube domain (allow music.youtube.com)
     const youtubeLinks = items.filter(item => {
         if (!item.url) {
+            console.error('Error: Bookmark item has no URL', item);
             errorCount++;
             return false;
         }
-        
-        const isYoutubeLink = item.url.includes('youtube.com/watch') || 
-                             item.url.includes('youtu.be/');
-        
+
+        const isYoutubeLink = item.url.includes('youtube.com/watch') ||
+            item.url.includes('youtu.be/');
+
         if (isYoutubeLink) {
             filteredCount++;
             return true;
+        } else {
+            console.error('Skipped non-YouTube link:', item.url);
+            errorCount++;
+            return false;
         }
-        
-        errorCount++;
-        return false;
     });
 
     // Extract video IDs from URLs
     const youtubeIds = youtubeLinks.map(item => {
         try {
             const url = new URL(item.url || '');
-            
+
             // Handle youtu.be short links
             if (url.hostname === 'youtu.be') {
                 const id = url.pathname.substring(1); // Remove leading slash
@@ -41,18 +43,20 @@ export function toYoutubePlaylist(items: chrome.bookmarks.BookmarkTreeNode[]): {
                     return id;
                 }
             }
-            
+
             // Handle regular youtube.com links
             const id = url.searchParams.get('v');
             if (id) {
                 successCount++;
                 return id;
+            } else {
+                // If we get here, couldn't extract an ID
+                console.error("Invalid YouTube link:", item.url);
+                errorCount++;
+                return '';
             }
-            
-            // If we get here, couldn't extract an ID
-            errorCount++;
-            return '';
         } catch (e) {
+            console.error("Error extracting YouTube ID:", e);
             errorCount++;
             return '';
         }
@@ -65,7 +69,7 @@ export function toYoutubePlaylist(items: chrome.bookmarks.BookmarkTreeNode[]): {
     }
 
     // Create playlist URLs for each chunk
-    const playlistUrls = idChunks.map(chunk => 
+    const playlistUrls = idChunks.map(chunk =>
         `https://www.youtube.com/watch_videos?video_ids=${chunk.join(',')}`
     );
 
@@ -78,7 +82,7 @@ export function toYoutubePlaylist(items: chrome.bookmarks.BookmarkTreeNode[]): {
     } else {
         message = `Created ${playlistUrls.length} playlist URLs with ${youtubeIds.length} videos total.`;
     }
-    
+
     if (errorCount > 0) {
         message += ` (${errorCount} invalid links skipped)`;
     }

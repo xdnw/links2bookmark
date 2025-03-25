@@ -17,7 +17,8 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.0.15",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.4.0"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.280",

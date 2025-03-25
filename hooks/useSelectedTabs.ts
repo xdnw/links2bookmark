@@ -4,7 +4,7 @@ export const useSelectedTabs = () => {
   const [selectedTabs, setSelectedTabs] = useState<chrome.tabs.Tab[]>([]);
 
   const checkForSelectedTabs = useCallback(() => {
-    chrome.tabs.query({ highlighted: true, currentWindow: true }, (tabs) => {
+    browser.tabs.query({ highlighted: true, currentWindow: true }, (tabs) => {
       setSelectedTabs(tabs);
     });
   }, []);
