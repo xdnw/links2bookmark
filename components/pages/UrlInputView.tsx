@@ -18,9 +18,9 @@ export default function UrlInputView() {
   
     const handleUrlInputSubmit = useCallback(() => {
       if (parseUrls()) {
-        setFolderSelectHandler((ids) => {
+        setFolderSelectHandler(() => (folderIds: string[]) => {
             bookmarkOperations.handlers.handleAddUrlsAsBookmarks(
-                ids, 
+                folderIds, 
                 {
                     items: parsedUrls,
                     onSuccess: () => {

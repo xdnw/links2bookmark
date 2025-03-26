@@ -14,9 +14,10 @@ export default function HomeView() {
 
   const handleImportBookmarks = useCallback((bookmarks: chrome.bookmarks.BookmarkTreeNode[]) => {
     bookmarkOperations.setImportedBookmarks(bookmarks);
-    setFolderSelectHandler((ids) => {
+    setFolderSelectHandler(() => (folderIds: string[]) => {
+      console.log('Importing bookmarks:', folderIds, bookmarks);
         bookmarkOperations.handlers.handleBookmarkImport(
-            ids, 
+          folderIds, 
             {
                 bookmarks,
                 onSuccess: () => {
@@ -33,9 +34,9 @@ export default function HomeView() {
     // Set handler for bookmarking tabs
     // folderHandler.setAddBookmarksHandler('tabs');
     // setFolderSelectHandler(bookmarkOperations.handlers.handleAddBookmarks);
-    setFolderSelectHandler((ids) => {
+    setFolderSelectHandler(() => (folderIds: string[]) => {
         bookmarkOperations.handlers.handleAddTabsAsBookmarks(
-            ids, 
+            folderIds, 
             {
                 items: selectedTabs,
                 onSuccess: () => {
@@ -53,9 +54,10 @@ export default function HomeView() {
 
   const handleExportFormatSelect = useCallback((format: ExportFormat) => {
     bookmarkOperations.setExportFormat(format);
-    setFolderSelectHandler((ids) => {
+    setFolderSelectHandler(() => (folderIds: string[]) => {
+        console.log('Exporting bookmarks:', folderIds, format);
         bookmarkOperations.handlers.handleBookmarkExport(
-            ids, 
+            folderIds, 
             {
                 format: format,
                 onSuccess: () => {
@@ -64,6 +66,7 @@ export default function HomeView() {
             }
         );
     });
+    console.log("Exporting bookmarks with format:", format);
 
     navigate('/folder-selector');
   }, [bookmarkOperations, navigate, setFolderSelectHandler]);

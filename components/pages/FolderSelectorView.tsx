@@ -15,7 +15,7 @@ export default function FolderSelectorView() {
     const handleFolderSelectCancel = useCallback(() => {
       // Clear any active handlers
       bookmarkOperations.clearExportFormat();
-      bookmarkOperations.setImportedBookmarks(null);
+      bookmarkOperations.setImportedBookmarks(undefined);
       
       if (parsedUrls.length > 0) {
         navigate('/url-input');
@@ -23,6 +23,8 @@ export default function FolderSelectorView() {
         navigate('/');
       }
     }, [parsedUrls.length, bookmarkOperations, navigate]);
+
+    console.log('FolderSelectorView');
   
     return (
       <>

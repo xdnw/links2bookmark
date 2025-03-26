@@ -1,6 +1,7 @@
 import { ExportFormat } from '@/components/ExportDropdown';
 import { useState, useCallback } from 'react';
 import { toYoutubePlaylist } from './youtube';
+import { Tabs } from 'wxt/browser';
 
 // Helper function to recursively get all bookmarks from multiple folders
 const getAllBookmarks = async (folderIds: string[]): Promise<chrome.bookmarks.BookmarkTreeNode[]> => {
@@ -29,19 +30,19 @@ const getAllBookmarks = async (folderIds: string[]): Promise<chrome.bookmarks.Bo
 export type FolderSelectHandler<T> = (folderIds: string[], options: T) => Promise<boolean>;
 
 export const useBookmarkOperations = () => {
-  const [bookmarkSuccess, setBookmarkSuccess] = useState<string | null>(null);
-  const [exportFormat, setExportFormat] = useState<ExportFormat | null>(null);
-  const [importedBookmarks, setImportedBookmarks] = useState<chrome.bookmarks.BookmarkTreeNode[] | null>(null);
+  const [bookmarkSuccess, setBookmarkSuccess] = useState<string | undefined>(undefined);
+  const [exportFormat, setExportFormat] = useState<ExportFormat | undefined>(undefined);
+  const [importedBookmarks, setImportedBookmarks] = useState<chrome.bookmarks.BookmarkTreeNode[] | undefined>(undefined);
 
   const showSuccess = useCallback((message: string) => {
     setBookmarkSuccess(message);
-    setTimeout(() => setBookmarkSuccess(null), 3000);
+    setTimeout(() => setBookmarkSuccess(undefined), 3000);
   }, []);
   
   const showError = useCallback((error: any) => {
     console.error("Bookmark operation error:", error);
     setBookmarkSuccess(`Error: ${error}`);
-    setTimeout(() => setBookmarkSuccess(null), 3000);
+    setTimeout(() => setBookmarkSuccess(undefined), 3000);
     return false;
   }, []);
 
@@ -314,7 +315,7 @@ export const useBookmarkOperations = () => {
   }, [showSuccess, showError]);
 
   const clearExportFormat = useCallback(() => {
-    setExportFormat(null);
+    setExportFormat(undefined);
   }, []);
 
   return {

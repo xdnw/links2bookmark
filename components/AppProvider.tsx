@@ -19,7 +19,7 @@ interface AppContextType {
   
   // Folder handler
   folderSelectHandler: ((folderIds: string[]) => void) | undefined;
-  setFolderSelectHandler: (handler: (folderIds: string[]) => void | undefined) => void;
+  setFolderSelectHandler: React.Dispatch<React.SetStateAction<((folderIds: string[]) => void) | undefined>>;
 
   // Messages
   bookmarkSuccess: string | undefined;
@@ -40,7 +40,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Initialize the folder handler system
   const bookmarkOperations = useBookmarkOperations();
   const [folderSelectHandler, setFolderSelectHandler] = useState<((folderIds: string[]) => void) | undefined>(undefined);
-  
   // Parse URLs from text input
   const parseUrls = useCallback(() => {
     try {

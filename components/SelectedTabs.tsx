@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from './Button';
+import { Tabs } from 'wxt/browser';
 
 type SelectedTabsProps = {
   selectedTabs: Tabs.Tab[];

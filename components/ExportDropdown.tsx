@@ -15,6 +15,7 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({ onSelectFormat }) => {
   }, []);
 
   const handleSelectFormat = useCallback((format: ExportFormat) => {
+    console.log(`Selected format: ${format}`);
     onSelectFormat(format);
     setShowDropdown(false);
   }, [onSelectFormat]);
