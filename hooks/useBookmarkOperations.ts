@@ -26,29 +26,44 @@ const getAllBookmarks = async (folderIds: string[]): Promise<chrome.bookmarks.Bo
   return allBookmarks;
 };
 
+export type FolderSelectHandler<T> = (folderIds: string[], options: T) => Promise<boolean>;
+
 export const useBookmarkOperations = () => {
   const [bookmarkSuccess, setBookmarkSuccess] = useState<string | null>(null);
   const [exportFormat, setExportFormat] = useState<ExportFormat | null>(null);
   const [importedBookmarks, setImportedBookmarks] = useState<chrome.bookmarks.BookmarkTreeNode[] | null>(null);
 
-  const handleFolderSelect = useCallback(async (
-    folderIds: string[],
-    exportFormat: ExportFormat | null,
-    importedBookmarks: chrome.bookmarks.BookmarkTreeNode[] | null,
-    parsedUrls: { title: string, url: string }[],
-    selectedTabs: chrome.tabs.Tab[],
-    onSuccess?: () => void
-  ) => {
-    try {
-      if (importedBookmarks != null) {
-        console.log("Importing bookmarks:", importedBookmarks);
+  const showSuccess = useCallback((message: string) => {
+    setBookmarkSuccess(message);
+    setTimeout(() => setBookmarkSuccess(null), 3000);
+  }, []);
+  
+  const showError = useCallback((error: any) => {
+    console.error("Bookmark operation error:", error);
+    setBookmarkSuccess(`Error: ${error}`);
+    setTimeout(() => setBookmarkSuccess(null), 3000);
+    return false;
+  }, []);
 
+    // HANDLER 1: Import bookmarks
+    const handleBookmarkImport: FolderSelectHandler<{ 
+        bookmarks: chrome.bookmarks.BookmarkTreeNode[], onSuccess?: () => void 
+      }> = useCallback(async (
+      folderIds: string[], 
+      options: { 
+        bookmarks: chrome.bookmarks.BookmarkTreeNode[],
+        onSuccess?: () => void 
+      }
+    ): Promise<boolean> => {
+      try {
+        const { bookmarks, onSuccess } = options;
+        
         // Cache structure to avoid repeated API calls
         const folderCache = new Map<string, {
-          bookmarkSet: Set<string>,  // "url|title" strings for quick lookup
-          folderMap: Map<string, string>  // title -> id mapping
+          bookmarkSet: Set<string>,
+          folderMap: Map<string, string>
         }>();
-
+        
         // Prefetch folder contents and build lookup structures
         const prefetchFolderContents = async (folderId: string) => {
           if (folderCache.has(folderId)) return;
@@ -166,22 +181,29 @@ export const useBookmarkOperations = () => {
         };
 
         // Start the import process in the selected folder
-        await createBookmarksRecursively(importedBookmarks, undefined);
-
+        await createBookmarksRecursively(bookmarks, undefined);
+        
         if (onSuccess) {
           onSuccess();
         }
-
-        setBookmarkSuccess("Bookmarks successfully imported!");
-        setTimeout(() => setBookmarkSuccess(null), 3000);
+        
+        showSuccess("Bookmarks successfully imported!");
         return true;
+      } catch (error) {
+        return showError(error);
       }
-      if (exportFormat) {
-        const items = await getAllBookmarks(folderIds);
+    }, [showSuccess, showError]);
 
+    const handleBookmarkExport: FolderSelectHandler<{ format: ExportFormat }> = useCallback(async (
+      folderIds: string[],
+      options: { format: ExportFormat }
+    ): Promise<boolean> => {
+      try {
+        const { format } = options;
+        const items = await getAllBookmarks(folderIds);
+        
         if (items.length === 0) {
-          setBookmarkSuccess("Error: No links found in folder");
-          setTimeout(() => setBookmarkSuccess(null), 3000);
+          showSuccess("Error: No links found in folder");
           return false;
         }
 
@@ -214,58 +236,74 @@ export const useBookmarkOperations = () => {
         }
 
         await navigator.clipboard.writeText(textToCopy);
-        setBookmarkSuccess(message);
-      } else {
-        if (parsedUrls.length > 0) {
-          // Add each parsed URL as a bookmark
-          for (const item of parsedUrls) {
-            await chrome.bookmarks.create({
-              parentId: folderIds[0],
-              title: item.title || new URL(item.url).hostname,
-              url: item.url
-            });
-          }
-        } else {
-          // Add each tab as a bookmark
-          for (const tab of selectedTabs) {
-            if (tab.title && tab.url) {
-              await chrome.bookmarks.create({
-                parentId: folderIds[0],
-                title: tab.title,
-                url: tab.url
-              });
-            }
-          }
-        }
-
-        if (onSuccess) {
-          onSuccess();
-        }
-
-        setBookmarkSuccess("Tabs successfully bookmarked!");
-      }
-      setTimeout(() => setBookmarkSuccess(null), 3000);
+        showSuccess(message);
       return true;
     } catch (error) {
-      console.error("Error bookmarking:", error);
-      setBookmarkSuccess(`Error: ${error}`);
-      setTimeout(() => setBookmarkSuccess(null), 3000);
-      return false;
+      return showError(error);
     }
-  }, []);
+  }, [showSuccess, showError]);
+  const handleAddBookmarks = useCallback(async (
+    folderIds: string[],
+    options: {
+      items: { title: string, url: string }[] | chrome.tabs.Tab[],
+      itemType: 'urls' | 'tabs',
+      onSuccess?: () => void
+    }
+  ): Promise<boolean> => {
+    try {
+      const { items, itemType, onSuccess } = options;
+      
+      if (itemType === 'urls') {
+        for (const item of items as { title: string, url: string }[]) {
+          await chrome.bookmarks.create({
+            parentId: folderIds[0],
+            title: item.title || new URL(item.url).hostname,
+            url: item.url
+          });
+        }
+      } else {
+        for (const tab of items as chrome.tabs.Tab[]) {
+          if (tab.title && tab.url) {
+            await chrome.bookmarks.create({
+              parentId: folderIds[0],
+              title: tab.title,
+              url: tab.url
+            });
+          }
+        }
+      }
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+      showSuccess("Items successfully bookmarked!");
+      return true;
+    } catch (error) {
+      return showError(error);
+    }
+  }, [showSuccess, showError]);
 
   const clearExportFormat = useCallback(() => {
     setExportFormat(null);
   }, []);
 
   return {
+    // State
     bookmarkSuccess,
-    setBookmarkSuccess,
     exportFormat,
-    setExportFormat,
-    clearExportFormat,
-    handleFolderSelect,
     importedBookmarks,
-    setImportedBookmarks
+    
+    // State setters
+    setExportFormat,
+    setImportedBookmarks,
+    clearExportFormat,
+    
+    // Handlers
+    handlers: {
+      handleBookmarkImport,
+      handleBookmarkExport,
+      handleAddBookmarks
+    }
   };
 };
