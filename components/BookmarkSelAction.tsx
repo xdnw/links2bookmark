@@ -130,10 +130,14 @@ const BookmarkSelActions: React.FC<BookmarkActionsProps> = ({ setUrlList, setSho
 
         // Open a special communication channel to the extension
         // This avoids the "Receiving end does not exist" error
-        window.postMessage({
+        chrome.runtime.sendMessage({
           type: 'from_rect_select',
           links: links
-        }, '*');
+        }).then(response => {
+          console.log('[Rect Select] Message sent to background script:', response);
+        }).catch(error => {
+          console.error('[Rect Select] Error sending message:', error);
+        });
 
         console.log('[Rect Select] Posted message to window');
       } catch (error) {
@@ -159,41 +163,20 @@ const BookmarkSelActions: React.FC<BookmarkActionsProps> = ({ setUrlList, setSho
     console.log('Activating rectangular selection tool');
 
     // Activate the rectangular selection tool in the current tab
-    browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
       console.log('Got active tab:', tabs[0]);
       const activeTab = tabs[0];
       if (activeTab?.id) {
         try {
-          // First inject the message listener content script
           browser.scripting.executeScript({
-            target: { tabId: activeTab.id },
-            func: () => {
-              // This injects the listener for window.postMessage events
-              window.addEventListener('message', function (event) {
-                if (event.data && event.data.type === 'from_rect_select') {
-                  console.log('[Content Script] Received rect select data:', event.data);
-                  localStorage.setItem('rect_selected_links', JSON.stringify(event.data.links));
-                  browser.storage.local.set({ selectedLinks: event.data.links }, () => {
-                    console.log('[Content Script] Saved links to browser.storage');
-                  });
-                }
-              });
-              console.log('[Content Script] Message listener installed');
-            }
-          }).then(() => {
-            console.log('Content script injected successfully');
-
-            // Then execute the selection script in the page
-            browser.scripting.executeScript({
-              target: { tabId: activeTab.id as number },
-              func: startRectangularSelection
-            }).then(results => {
-              console.log('Script injection results:', results);
-              // Close the popup after successful script injection
-              window.close();
-            }).catch(err => {
-              console.error('Script injection error:', err);
-            });
+            target: { tabId: activeTab.id as number },
+            func: startRectangularSelection
+          }).then(results => {
+            console.log('Script injection results:', results);
+            // Close the popup after successful script injection
+            window.close();
+          }).catch(err => {
+            console.error('Script injection error:', err);
           });
         } catch (error) {
           console.error('Error in rect select setup:', error);
@@ -209,16 +192,18 @@ const BookmarkSelActions: React.FC<BookmarkActionsProps> = ({ setUrlList, setSho
     console.log('App component mounted/updated - checking for stored links');
 
     // Check storage for any selected links
-    browser.storage.local.get(['selectedLinks'], (result) => {
+    browser.storage.local.get(['selectedLinks']).then((result) => {
       if (result.selectedLinks && Array.isArray(result.selectedLinks) && result.selectedLinks.length > 0) {
         console.log('Found stored links:', result.selectedLinks);
         setUrlList(result.selectedLinks.join('\n'));
         setShowUrlInput(true);
 
         // Clear storage after retrieving
-        browser.storage.local.remove(['selectedLinks'], () => {
+        browser.storage.local.remove(['selectedLinks']).then(() => {
           console.log('Cleared stored links from storage');
         });
+      } else {
+        console.log('No stored links found in storage');
       }
     });
   }, [setUrlList, setShowUrlInput]);

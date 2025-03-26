@@ -194,22 +194,22 @@ export const useBookmarkOperations = () => {
       }
     }, [showSuccess, showError]);
 
-    const handleBookmarkExport: FolderSelectHandler<{ format: ExportFormat }> = useCallback(async (
+    const handleBookmarkExport: FolderSelectHandler<{ format: ExportFormat, onSuccess?: () => void }> = useCallback(async (
       folderIds: string[],
-      options: { format: ExportFormat }
+      options: { format: ExportFormat, onSuccess?: () => void }
     ): Promise<boolean> => {
       try {
-        const { format } = options;
+        const { format, onSuccess } = options;
         const items = await getAllBookmarks(folderIds);
         
         if (items.length === 0) {
-          showSuccess("Error: No links found in folder");
+          showError("No links found in folder");
           return false;
         }
 
         let message = (items.length === 1 ? "Link" : "Links") + " copied to clipboard!";
         let textToCopy = '';
-        switch (exportFormat) {
+        switch (format) {
           case 'urls':
             textToCopy = items.map(item => item.url).join('\n');
             break;
@@ -235,6 +235,15 @@ export const useBookmarkOperations = () => {
           }
         }
 
+        if (textToCopy.length === 0) {
+          showError(" No links found in folder");
+          return false;
+        }
+
+        if (onSuccess) {
+          onSuccess();
+        }
+
         await navigator.clipboard.writeText(textToCopy);
         showSuccess(message);
       return true;
@@ -242,34 +251,54 @@ export const useBookmarkOperations = () => {
       return showError(error);
     }
   }, [showSuccess, showError]);
-  const handleAddBookmarks = useCallback(async (
+  // HANDLER 3 Add URL items as bookmarks
+  const handleAddUrlsAsBookmarks = useCallback(async (
     folderIds: string[],
     options: {
-      items: { title: string, url: string }[] | chrome.tabs.Tab[],
-      itemType: 'urls' | 'tabs',
+      items: { title: string, url: string }[],
       onSuccess?: () => void
     }
   ): Promise<boolean> => {
     try {
-      const { items, itemType, onSuccess } = options;
+      const { items, onSuccess } = options;
       
-      if (itemType === 'urls') {
-        for (const item of items as { title: string, url: string }[]) {
+      for (const item of items) {
+        await chrome.bookmarks.create({
+          parentId: folderIds[0],
+          title: item.title || new URL(item.url).hostname,
+          url: item.url
+        });
+      }
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+      showSuccess("Links successfully bookmarked!");
+      return true;
+    } catch (error) {
+      return showError(error);
+    }
+  }, [showSuccess, showError]);
+
+  // HANDLER 4: Add browser tabs as bookmarks
+  const handleAddTabsAsBookmarks = useCallback(async (
+    folderIds: string[],
+    options: {
+      items: Tabs.Tab[],
+      onSuccess?: () => void
+    }
+  ): Promise<boolean> => {
+    try {
+      const { items, onSuccess } = options;
+      
+      for (const tab of items) {
+        if (tab.title && tab.url) {
           await chrome.bookmarks.create({
             parentId: folderIds[0],
-            title: item.title || new URL(item.url).hostname,
-            url: item.url
+            title: tab.title,
+            url: tab.url
           });
-        }
-      } else {
-        for (const tab of items as chrome.tabs.Tab[]) {
-          if (tab.title && tab.url) {
-            await chrome.bookmarks.create({
-              parentId: folderIds[0],
-              title: tab.title,
-              url: tab.url
-            });
-          }
         }
       }
       
@@ -277,7 +306,7 @@ export const useBookmarkOperations = () => {
         onSuccess();
       }
       
-      showSuccess("Items successfully bookmarked!");
+      showSuccess("Tabs successfully bookmarked!");
       return true;
     } catch (error) {
       return showError(error);
@@ -291,6 +320,8 @@ export const useBookmarkOperations = () => {
   return {
     // State
     bookmarkSuccess,
+    showSuccess,
+    showError,
     exportFormat,
     importedBookmarks,
     
@@ -303,7 +334,8 @@ export const useBookmarkOperations = () => {
     handlers: {
       handleBookmarkImport,
       handleBookmarkExport,
-      handleAddBookmarks
+      handleAddUrlsAsBookmarks,
+      handleAddTabsAsBookmarks
     }
   };
 };

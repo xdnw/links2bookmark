@@ -1,91 +1,108 @@
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import { ExportFormat } from '@/components/ExportDropdown';
+import { FolderSelectHandler } from '@/hooks/useBookmarkOperations';
+import { Tabs } from 'wxt/browser';
+
 interface AppContextType {
-    selectedTabs: chrome.tabs.Tab[];
-    urlList: string;
-    setUrlList: (value: string) => void;
-    parsedUrls: ParsedUrlType[];
-    parseUrls: () => boolean;
-    clearParsedUrls: () => void;
-    bookmarkSuccess: string | null;
-    setBookmarkSuccess: (message: string | null) => void;
-    exportFormat: ExportFormat | null;
-    setExportFormat: (format: ExportFormat) => void;
-    clearExportFormat: () => void;
-    handleFolderSelect: (
-      folderIds: string[],
-      exportFormat: ExportFormat | null,
-      importedBookmarks: chrome.bookmarks.BookmarkTreeNode[] | null,
-      parsedUrls: { title: string, url: string }[],
-      selectedTabs: chrome.tabs.Tab[],
-      onSuccess?: () => void
-    ) => Promise<boolean>;
-    importedBookmarks: chrome.bookmarks.BookmarkTreeNode[] | null;
-    setImportedBookmarks: (bookmarks: chrome.bookmarks.BookmarkTreeNode[]) => void;
-    clearImportedBookmarks: () => void;
-  }
+  // Tab state
+  selectedTabs: Tabs.Tab[];
+  
+  // URL input state
+  urlList: string;
+  setUrlList: (list: string) => void;
+  parsedUrls: { title: string, url: string }[];
+  parseUrls: () => boolean;
+  clearParsedUrls: () => void;
+  
+  // general operations
+  bookmarkOperations: ReturnType<typeof useBookmarkOperations>;
+  
+  // Folder handler
+  folderSelectHandler: ((folderIds: string[]) => void) | undefined;
+  setFolderSelectHandler: (handler: (folderIds: string[]) => void | undefined) => void;
 
-// Create a context to share state between routes
-const AppContext = createContext<AppContextType | null>(null);
-
-interface AppProviderProps {
-  children: ReactNode;
+  // Messages
+  bookmarkSuccess: string | undefined;
+  showSuccess: (message: string) => void;
+  showError: (message: string) => void;
 }
 
-function AppProvider({ children }: AppProviderProps) {
-  // Keep all state at the top level to share between routes
-  const { selectedTabs } = useSelectedTabs();
-  const {
-    urlList,
-    setUrlList,
-    parsedUrls,
-    parseUrls,
-    clearParsedUrls
-  } = useUrlParser();
-  const {
-    bookmarkSuccess,
-    setBookmarkSuccess,
-    exportFormat,
-    setExportFormat,
-    clearExportFormat,
-    // handleFolderSelect,
-    importedBookmarks,
-    setImportedBookmarks,
-  } = useBookmarkOperations();
+const AppContext = createContext<AppContextType | null>(null);
 
-  const clearImportedBookmarks = useCallback(() => {
-    setImportedBookmarks(null);
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Tab state
+  const [selectedTabs, setSelectedTabs] = useState<Tabs.Tab[]>([]);
+  
+  // URL input state
+  const [urlList, setUrlList] = useState<string>('');
+  const [parsedUrls, setParsedUrls] = useState<{ title: string, url: string }[]>([]);
+  
+  // Initialize the folder handler system
+  const bookmarkOperations = useBookmarkOperations();
+  const [folderSelectHandler, setFolderSelectHandler] = useState<((folderIds: string[]) => void) | undefined>(undefined);
+  
+  // Parse URLs from text input
+  const parseUrls = useCallback(() => {
+    try {
+      const lines = urlList.split('\n').filter(line => line.trim() !== '');
+      const parsedItems = lines.map(line => {
+        let [title, url] = line.split(/\s+(.+)/);
+        if (!url) {
+          url = title;
+          title = new URL(url).hostname;
+        }
+        return { title, url };
+      });
+      
+      if (parsedItems.length > 0) {
+        setParsedUrls(parsedItems);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.error("Error parsing URLs:", e);
+      return false;
+    }
+  }, [urlList]);
+  
+  const clearParsedUrls = useCallback(() => {
+    setParsedUrls([]);
+    setUrlList('');
   }, []);
-
-  // Provide all state and functions to child components
-  const contextValue: AppContextType = {
-    selectedTabs,
-    urlList,
-    setUrlList,
-    parsedUrls,
-    parseUrls,
-    clearParsedUrls,
-    bookmarkSuccess,
-    setBookmarkSuccess,
-    exportFormat,
-    setExportFormat,
-    clearExportFormat,
-    handleFolderSelect,
-    importedBookmarks,
-    setImportedBookmarks,
-    clearImportedBookmarks
-  };
-
+  
+  // Load selected tabs
+  React.useEffect(() => {
+    const loadSelectedTabs = async () => {
+      const tabs = await browser.tabs.query({ highlighted: true, currentWindow: true });
+      setSelectedTabs(tabs);
+    };
+    loadSelectedTabs();
+  }, []);
+  
   return (
-    <AppContext.Provider value={contextValue}>
+    <AppContext.Provider value={{
+      selectedTabs,
+      urlList,
+      setUrlList,
+      parsedUrls,
+      parseUrls,
+      clearParsedUrls,
+      bookmarkOperations,
+      folderSelectHandler,
+      setFolderSelectHandler,
+      bookmarkSuccess: bookmarkOperations.bookmarkSuccess,
+      showSuccess: bookmarkOperations.showSuccess,
+      showError: bookmarkOperations.showError,
+    }}>
       {children}
     </AppContext.Provider>
   );
-}
+};
 
-// Custom hook to use the app context
-function useAppContext(): AppContextType {
+export const useAppContext = () => {
   const context = useContext(AppContext);
   if (!context) {
     throw new Error('useAppContext must be used within an AppProvider');
   }
   return context;
-}
+};

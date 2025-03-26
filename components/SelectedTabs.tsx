@@ -2,7 +2,7 @@ import React from 'react';
 import Button from './Button';
 
 type SelectedTabsProps = {
-  selectedTabs: chrome.tabs.Tab[];
+  selectedTabs: Tabs.Tab[];
   onBookmarkTabs: () => void;
 };
 
