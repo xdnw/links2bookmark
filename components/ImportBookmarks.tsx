@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
+import { Bookmarks } from 'wxt/browser';
 
 interface ImportBookmarksProps {
-    onImport: (bookmarks: chrome.bookmarks.BookmarkTreeNode[]) => void;
+    onImport: (bookmarks: Bookmarks.BookmarkTreeNode[]) => void;
 }
 
 function ImportBookmarks({ onImport }: ImportBookmarksProps) {
@@ -32,7 +33,7 @@ function ImportBookmarks({ onImport }: ImportBookmarksProps) {
         }
     };
 
-    const parseBookmarksFromHtml = (doc: Document): chrome.bookmarks.BookmarkTreeNode[] => {
+    const parseBookmarksFromHtml = (doc: Document): Bookmarks.BookmarkTreeNode[] => {
         let currentId = 0;
 
         const generateId = () => {
@@ -44,8 +45,8 @@ function ImportBookmarks({ onImport }: ImportBookmarksProps) {
         console.log(`Document structure sample: ${doc.body.innerHTML.substring(0, 300)}...`);
 
         // Recursively process the bookmark structure
-        const processStructure = (element: Element, parentId?: string, path?: string): chrome.bookmarks.BookmarkTreeNode[] => {
-            const results: chrome.bookmarks.BookmarkTreeNode[] = [];
+        const processStructure = (element: Element, parentId?: string, path?: string): Bookmarks.BookmarkTreeNode[] => {
+            const results: Bookmarks.BookmarkTreeNode[] = [];
 
             // Process the current element
             if (element.tagName.toLowerCase() === 'dl') {
@@ -67,7 +68,7 @@ function ImportBookmarks({ onImport }: ImportBookmarksProps) {
                     } else if (child.tagName.toLowerCase() === 'dl') {
                         // Create a folder node
                         const folderId = generateId();
-                        const folderNode: chrome.bookmarks.BookmarkTreeNode = {
+                        const folderNode: Bookmarks.BookmarkTreeNode = {
                             id: folderId,
                             title: folderName ?? 'Other Favorites',
                             parentId,
@@ -85,7 +86,7 @@ function ImportBookmarks({ onImport }: ImportBookmarksProps) {
 
                         // if a tag
                     } else if (child.tagName.toLowerCase() === 'a') {
-                        const bookmarkNode: chrome.bookmarks.BookmarkTreeNode = {
+                        const bookmarkNode: Bookmarks.BookmarkTreeNode = {
                             id: generateId(),
                             title: child.textContent || 'Untitled Bookmark', // TODO FIXME use domain name
                             url: child.getAttribute('href') || '',
@@ -120,7 +121,7 @@ function ImportBookmarks({ onImport }: ImportBookmarksProps) {
                     JSON.stringify(rootBookmarks.slice(0, 2), null, 2));
 
 
-                const rootFolderNode: chrome.bookmarks.BookmarkTreeNode = {
+                const rootFolderNode: Bookmarks.BookmarkTreeNode = {
                     id: rootId,
                     title: 'Imported Bookmarks',
                     children: rootBookmarks

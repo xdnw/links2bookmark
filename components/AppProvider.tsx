@@ -55,6 +55,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       if (parsedItems.length > 0) {
         setParsedUrls(parsedItems);
+        console.log('set parsed URLs:', parsedItems);
         return true;
       }
       return false;

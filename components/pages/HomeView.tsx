@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../AppProvider";
 import ImportBookmarks from "../ImportBookmarks";
+import { RemoveDuplicatesButton } from "./RemoveDuplicates";
+import { Bookmarks } from "wxt/browser";
 
 export default function HomeView() {
   const navigate = useNavigate();
@@ -12,7 +14,7 @@ export default function HomeView() {
     setFolderSelectHandler,
   } = useAppContext();
 
-  const handleImportBookmarks = useCallback((bookmarks: chrome.bookmarks.BookmarkTreeNode[]) => {
+  const handleImportBookmarks = useCallback((bookmarks: Bookmarks.BookmarkTreeNode[]) => {
     bookmarkOperations.setImportedBookmarks(bookmarks);
     setFolderSelectHandler(() => (folderIds: string[]) => {
       console.log('Importing bookmarks:', folderIds, bookmarks);
@@ -91,6 +93,8 @@ export default function HomeView() {
       />
 
       <ImportBookmarks onImport={handleImportBookmarks} />
+      
+      <RemoveDuplicatesButton />
 
       <div className="mt-3">
         <ExportDropdown onSelectFormat={handleExportFormatSelect} />

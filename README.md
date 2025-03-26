@@ -51,7 +51,6 @@ Pics:
 
 Potential New Features: (soon):
 -----------------------------
-1.  **Duplicate detection** - When adding new bookmarks, detect and warn about potential duplicates in the selected folder
 2.  **Recently added filter** - Quick filter to show only recently added bookmarks
 3.  **JSON syntax for bookmarks** - probably just use the html syntax but with json instead of xml
 4. Custom bookmarks page: Modify the bookmarks page to allow directly right click copying links

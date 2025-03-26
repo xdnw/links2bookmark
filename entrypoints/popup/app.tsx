@@ -14,6 +14,7 @@ import { AppProvider, useAppContext } from '@/components/AppProvider';
 import UrlInputView from '@/components/pages/UrlInputView';
 import FolderSelectorView from '@/components/pages/FolderSelectorView';
 import HomeView from '@/components/pages/HomeView';
+import RemoveDuplicatesView from '@/components/pages/RemoveDuplicates';
 
 // Main App component
 function App() {
@@ -27,6 +28,7 @@ function App() {
               <Route path="/folder-selector" element={<FolderSelectorView />} />
               <Route path="/url-input" element={<UrlInputView />} />
               <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="/remove-duplicates" element={<RemoveDuplicatesView />} />
             </Routes>
           </div>
           <Footer />

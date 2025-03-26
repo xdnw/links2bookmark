@@ -18,7 +18,9 @@ export default function UrlInputView() {
   
     const handleUrlInputSubmit = useCallback(() => {
       if (parseUrls()) {
+        console.log('Parsed URLs:', parsedUrls);
         setFolderSelectHandler(() => (folderIds: string[]) => {
+          console.log('Adding bookmarks:', folderIds, parsedUrls);
             bookmarkOperations.handlers.handleAddUrlsAsBookmarks(
                 folderIds, 
                 {

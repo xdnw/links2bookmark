@@ -1,11 +1,40 @@
 import { ExportFormat } from '@/components/ExportDropdown';
 import { useState, useCallback } from 'react';
 import { toYoutubePlaylist } from './youtube';
-import { Tabs } from 'wxt/browser';
+import { Bookmarks, Tabs } from 'wxt/browser';
+
+export async function removeDuplicateBookmarks(bookmarks: Bookmarks.BookmarkTreeNode[]): Promise<{
+  removedCount: number;
+  processedCount: number;
+}> {
+  const uniqueUrls = new Map<string, Bookmarks.BookmarkTreeNode>();
+  const duplicates: Bookmarks.BookmarkTreeNode[] = [];
+  
+  // Find duplicates
+  bookmarks.forEach(bookmark => {
+    if (!bookmark.url) return;
+    
+    if (uniqueUrls.has(bookmark.url)) {
+      duplicates.push(bookmark);
+    } else {
+      uniqueUrls.set(bookmark.url, bookmark);
+    }
+  });
+  
+  // Remove duplicates
+  for (const bookmark of duplicates) {
+    await browser.bookmarks.remove(bookmark.id);
+  }
+  
+  return {
+    removedCount: duplicates.length,
+    processedCount: bookmarks.length
+  };
+}
 
 // Helper function to recursively get all bookmarks from multiple folders
-const getAllBookmarks = async (folderIds: string[]): Promise<chrome.bookmarks.BookmarkTreeNode[]> => {
-  let allBookmarks: chrome.bookmarks.BookmarkTreeNode[] = [];
+export const getAllBookmarks = async (folderIds: string[]): Promise<Bookmarks.BookmarkTreeNode[]> => {
+  let allBookmarks: Bookmarks.BookmarkTreeNode[] = [];
 
   // Process each folder
   for (const folderId of folderIds) {
@@ -32,7 +61,7 @@ export type FolderSelectHandler<T> = (folderIds: string[], options: T) => Promis
 export const useBookmarkOperations = () => {
   const [bookmarkSuccess, setBookmarkSuccess] = useState<string | undefined>(undefined);
   const [exportFormat, setExportFormat] = useState<ExportFormat | undefined>(undefined);
-  const [importedBookmarks, setImportedBookmarks] = useState<chrome.bookmarks.BookmarkTreeNode[] | undefined>(undefined);
+  const [importedBookmarks, setImportedBookmarks] = useState<Bookmarks.BookmarkTreeNode[] | undefined>(undefined);
 
   const showSuccess = useCallback((message: string) => {
     setBookmarkSuccess(message);
@@ -48,11 +77,11 @@ export const useBookmarkOperations = () => {
 
     // HANDLER 1: Import bookmarks
     const handleBookmarkImport: FolderSelectHandler<{ 
-        bookmarks: chrome.bookmarks.BookmarkTreeNode[], onSuccess?: () => void 
+        bookmarks: Bookmarks.BookmarkTreeNode[], onSuccess?: () => void 
       }> = useCallback(async (
       folderIds: string[], 
       options: { 
-        bookmarks: chrome.bookmarks.BookmarkTreeNode[],
+        bookmarks: Bookmarks.BookmarkTreeNode[],
         onSuccess?: () => void 
       }
     ): Promise<boolean> => {
@@ -69,7 +98,7 @@ export const useBookmarkOperations = () => {
         const prefetchFolderContents = async (folderId: string) => {
           if (folderCache.has(folderId)) return;
 
-          const children = await chrome.bookmarks.getChildren(folderId);
+          const children = await browser.bookmarks.getChildren(folderId);
           const bookmarkSet = new Set<string>();
           const folderMap = new Map<string, string>();
 
@@ -87,7 +116,7 @@ export const useBookmarkOperations = () => {
         };
 
         const createBookmarksRecursively = async (
-          items: chrome.bookmarks.BookmarkTreeNode[],
+          items: Bookmarks.BookmarkTreeNode[],
           parentId?: string,
           skipDuplicateCheck: boolean = false
         ) => {
@@ -110,7 +139,7 @@ export const useBookmarkOperations = () => {
               }
 
               console.log(`Creating bookmark: ${item.title || new URL(item.url).hostname}`);
-              await chrome.bookmarks.create({
+              await browser.bookmarks.create({
                 parentId: parentId,
                 title: item.title || new URL(item.url).hostname,
                 url: item.url
@@ -134,7 +163,7 @@ export const useBookmarkOperations = () => {
                   folderId = cacheEntry.folderMap.get(item.title);
                 } else {
                   console.log(`Creating folder: ${item.title || "Imported Folder"}`);
-                  const newFolder = await chrome.bookmarks.create({
+                  const newFolder = await browser.bookmarks.create({
                     parentId: parentId,
                     title: item.title || "Imported Folder"
                   });
@@ -159,7 +188,7 @@ export const useBookmarkOperations = () => {
                   folderId = cacheEntry.folderMap.get(item.title);
                 } else {
                   console.log(`Creating top folder: ${item.title || "Imported Folder"}`);
-                  const newFolder = await chrome.bookmarks.create({
+                  const newFolder = await browser.bookmarks.create({
                     parentId: parentId,
                     title: item.title || "Imported Folder"
                   });
@@ -264,7 +293,8 @@ export const useBookmarkOperations = () => {
       const { items, onSuccess } = options;
       
       for (const item of items) {
-        await chrome.bookmarks.create({
+        console.log(`Creating bookmark: ${item.title || new URL(item.url).hostname} in folder ${folderIds[0]}`);
+        await browser.bookmarks.create({
           parentId: folderIds[0],
           title: item.title || new URL(item.url).hostname,
           url: item.url
@@ -295,7 +325,7 @@ export const useBookmarkOperations = () => {
       
       for (const tab of items) {
         if (tab.title && tab.url) {
-          await chrome.bookmarks.create({
+          await browser.bookmarks.create({
             parentId: folderIds[0],
             title: tab.title,
             url: tab.url

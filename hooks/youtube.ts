@@ -1,4 +1,6 @@
-export function toYoutubePlaylist(items: chrome.bookmarks.BookmarkTreeNode[]): {
+import { Bookmarks } from "wxt/browser";
+
+export function toYoutubePlaylist(items: Bookmarks.BookmarkTreeNode[]): {
     result: string[],
     success: number,
     error: number,

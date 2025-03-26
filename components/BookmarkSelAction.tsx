@@ -130,7 +130,7 @@ const BookmarkSelActions: React.FC<BookmarkActionsProps> = ({ setUrlList, setSho
 
         // Open a special communication channel to the extension
         // This avoids the "Receiving end does not exist" error
-        chrome.runtime.sendMessage({
+        browser.runtime.sendMessage({
           type: 'from_rect_select',
           links: links
         }).then(response => {
