@@ -152,7 +152,6 @@ const BookmarkSelActions: React.FC<BookmarkActionsProps> = ({ setUrlList, setSho
         document.removeEventListener('keydown', escHandler);
       }
     });
-
     return "Selection tool activated";
   };
 

@@ -12,6 +12,7 @@ import { useUrlParser } from '../../hooks/useUrlParser';
 import { useBookmarkOperations } from '../../hooks/useBookmarkOperations';
 import BookmarkSelAction from '@/components/BookmarkSelAction';
 import Footer from '@/components/Footer';
+import ImportBookmarks from '@/components/ImportBookmarks';
 // Define types for our context
 
 interface ParsedUrlType {
@@ -33,12 +34,16 @@ interface AppContextType {
   setExportFormat: (format: ExportFormat) => void;
   clearExportFormat: () => void;
   handleFolderSelect: (
-    folderId: string,
+    folderIds: string[],
     exportFormat: ExportFormat | null,
-    parsedUrls: ParsedUrlType[],
+    importedBookmarks: chrome.bookmarks.BookmarkTreeNode[] | null,
+    parsedUrls: { title: string, url: string }[],
     selectedTabs: chrome.tabs.Tab[],
-    callback: () => void
+    onSuccess?: () => void
   ) => Promise<boolean>;
+  importedBookmarks: chrome.bookmarks.BookmarkTreeNode[] | null;
+  setImportedBookmarks: (bookmarks: chrome.bookmarks.BookmarkTreeNode[]) => void;
+  clearImportedBookmarks: () => void;
 }
 
 // Create a context to share state between routes
@@ -64,8 +69,14 @@ function AppProvider({ children }: AppProviderProps) {
     exportFormat,
     setExportFormat,
     clearExportFormat,
-    handleFolderSelect
+    handleFolderSelect,
+    importedBookmarks,
+    setImportedBookmarks,
   } = useBookmarkOperations();
+
+  const clearImportedBookmarks = useCallback(() => {
+    setImportedBookmarks(null);
+  }, []);
 
   // Provide all state and functions to child components
   const contextValue: AppContextType = {
@@ -80,7 +91,10 @@ function AppProvider({ children }: AppProviderProps) {
     exportFormat,
     setExportFormat,
     clearExportFormat,
-    handleFolderSelect
+    handleFolderSelect,
+    importedBookmarks,
+    setImportedBookmarks,
+    clearImportedBookmarks
   };
 
   return (
@@ -106,8 +120,14 @@ function HomeView() {
     selectedTabs,
     setUrlList,
     setExportFormat,
-    bookmarkSuccess
+    bookmarkSuccess,
+    setImportedBookmarks
   } = useAppContext();
+
+  const handleImportBookmarks = useCallback((bookmarks: chrome.bookmarks.BookmarkTreeNode[]) => {
+    setImportedBookmarks(bookmarks);
+    navigate('/folder-selector');
+  }, [setImportedBookmarks]);
 
   const bookmarkSelectedTabs = useCallback(() => {
     navigate('/folder-selector');
@@ -141,6 +161,8 @@ function HomeView() {
         setUrlList={setUrlList}
       />
 
+      <ImportBookmarks onImport={handleImportBookmarks} />
+
       <div className="mt-3">
         <ExportDropdown onSelectFormat={handleExportFormatSelect} />
       </div>
@@ -157,12 +179,16 @@ function FolderSelectorView() {
     selectedTabs,
     exportFormat,
     clearExportFormat,
+    clearImportedBookmarks,
     handleFolderSelect,
-    bookmarkSuccess
+    bookmarkSuccess,
+    importedBookmarks
   } = useAppContext();
 
   const handleFolderSelectCancel = useCallback(() => {
     clearExportFormat();
+    console.log('Clearing imported bookmarks');
+    clearImportedBookmarks();
     if (parsedUrls.length > 0) {
       navigate('/url-input');
     } else {
@@ -170,10 +196,11 @@ function FolderSelectorView() {
     }
   }, [parsedUrls.length, clearExportFormat, navigate]);
 
-  const handleConfirmFolderSelect = useCallback(async (folderId: string) => {
+  const handleConfirmFolderSelect = useCallback(async (folderIds: string[]) => {
     const success = await handleFolderSelect(
-      folderId,
+      folderIds,
       exportFormat,
+      importedBookmarks,
       parsedUrls,
       selectedTabs,
       () => {
@@ -183,11 +210,14 @@ function FolderSelectorView() {
 
     if (success) {
       clearExportFormat();
+      clearImportedBookmarks();
+      console.log('Clearing imported bookmarks');
       navigate('/');
     }
   }, [
     handleFolderSelect,
     exportFormat,
+    importedBookmarks,
     parsedUrls,
     selectedTabs,
     clearParsedUrls,
@@ -202,7 +232,9 @@ function FolderSelectorView() {
         mode="select"
         onSelectFolder={handleConfirmFolderSelect}
         onCancel={handleFolderSelectCancel}
-        source={!!exportFormat}
+        source={!!exportFormat || !!importedBookmarks}
+        multiSelect={!!importedBookmarks}
+        virtualBookmarks={importedBookmarks ?? undefined}
       />
     </>
   );
