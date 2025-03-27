@@ -330,7 +330,7 @@ export default function BookmarkTree({
   return (
     <div className="mb-2 mx-2">
       <h2 className="text-xl text-orange-500 dark:text-orange-500 text-left font-extrabold border-b border-gray-200 dark:border-gray-700 mb-1">
-        {mode === 'select' ? `(DEBUG) Select ${multiSelect ? '' : 'a '}${source ? "source" : "destination"} folder${multiSelect ? 's' : ''}` : 'bookmarks'}
+        {mode === 'select' ? `Select ${multiSelect ? '' : 'a '}${source ? "source" : "destination"} folder${multiSelect ? 's' : ''}` : 'bookmarks'}
       </h2>
       <div className="">
         <p className='text-xs text-left'>Double click to open folders</p>

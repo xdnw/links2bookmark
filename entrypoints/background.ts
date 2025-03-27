@@ -5,8 +5,6 @@ interface Message {
 }
 
 export default defineBackground(() => {
-  console.log('Hello background!', { id: browser.runtime.id });
- 
   console.log('Background script loaded');
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const typedMessage = message as Message; // Explicitly cast message to Message
