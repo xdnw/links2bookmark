@@ -10,7 +10,6 @@ export default defineConfig({
 
   manifest: {
     permissions: [
-      'tabs',
       'bookmarks',
       "activeTab",
       "scripting",

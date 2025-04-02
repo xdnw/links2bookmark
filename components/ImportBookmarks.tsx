@@ -41,7 +41,6 @@ function ImportBookmarks({ onImport }: ImportBookmarksProps) {
             return `imported-${currentId}`;
         };
 
-        console.log('Starting simplified bookmark parsing...');
         console.log(`Document structure sample: ${doc.body.innerHTML.substring(0, 300)}...`);
 
         // Recursively process the bookmark structure
@@ -52,11 +51,6 @@ function ImportBookmarks({ onImport }: ImportBookmarksProps) {
             if (element.tagName.toLowerCase() === 'dl') {
                 // Find all direct children of the DL
                 const children = Array.from(element.children);
-
-                // // First, extract any direct bookmarks in this DL
-                // const bookmarksInThisLevel = processBookmarks(element, parentId);
-                // console.log(`Found ${bookmarksInThisLevel.length} bookmarks in this level: ${path ? "/" + path : "<root>"}`);
-                // results.push(...bookmarksInThisLevel);
 
                 // Now look for H3 elements which indicate folders
                 let folderName = null;
@@ -172,7 +166,7 @@ function ImportBookmarks({ onImport }: ImportBookmarksProps) {
                 fullWidth
                 startIcon={startIcon}
             >
-                Import Bookmarks HTML
+                Selectively Import Bookmarks File
             </Button>
         </div>
     );

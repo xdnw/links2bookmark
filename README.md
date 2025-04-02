@@ -1,3 +1,8 @@
+TODO:
+remove duplicates broken
+file import support other formats
+todo current tabs to csv
+
 About
 -----------------------------
 Chrome extension to help bookmark links.

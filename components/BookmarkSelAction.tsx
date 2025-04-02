@@ -130,15 +130,11 @@ const BookmarkSelActions: React.FC<BookmarkActionsProps> = ({ setUrlList, setSho
 
         // Open a special communication channel to the extension
         // This avoids the "Receiving end does not exist" error
-        browser.runtime.sendMessage({
+        window.postMessage({
           type: 'from_rect_select',
+          source: 'rectangle_selection',
           links: links
-        }).then(response => {
-          console.log('[Rect Select] Message sent to background script:', response);
-        }).catch(error => {
-          console.error('[Rect Select] Error sending message:', error);
-        });
-
+        }, '*');
         console.log('[Rect Select] Posted message to window');
       } catch (error) {
         console.error('[Rect Select] Error in communication:', error);
